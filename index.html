@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สื่อการเรียนรู้ Microcontroller - Binary Up Counting (ข้อ 2)</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #161f30;
+      --card-border: #24344d;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --highlight: rgba(56, 189, 248, 0.25);
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 950px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    h1, h2, h3 {
+      margin: 0 0 10px 0;
+      color: var(--accent);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 22px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    /* Hardware Simulation Board */
+    .board {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #0d131f;
+      padding: 30px;
+      border-radius: 12px;
+      border: 2px dashed #334155;
+    }
+    .led-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .led {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 3px solid #475569;
+      transition: all 0.2s ease;
+    }
+    .led.green.on  { background: #22c55e; box-shadow: 0 0 25px #22c55e; border-color: #86efac; }
+    .led.yellow.on { background: #eab308; box-shadow: 0 0 25px #eab308; border-color: #fef08a; }
+    .led.orange.on { background: #f97316; box-shadow: 0 0 25px #f97316; border-color: #fdba74; }
+    .led.red.on    { background: #ef4444; box-shadow: 0 0 25px #ef4444; border-color: #fca5a5; }
+    
+    .label { font-size: 14px; font-weight: bold; }
+    .pin { font-size: 12px; color: var(--muted); }
+    .bit-val { font-size: 13px; font-family: monospace; color: #38bdf8; font-weight: bold; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: var(--accent);
+      color: #0b0f19;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { opacity: 0.9; }
+    .status-badge {
+      font-size: 15px;
+      font-weight: bold;
+      color: #e2e8f0;
+      margin-left: auto;
+      background: #1e293b;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+
+    /* Grid Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Code View */
+    .code-box {
+      background: #080c14;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      padding: 12px 0;
+      line-height: 1.6;
+    }
+    .code-line {
+      padding: 2px 14px;
+      display: block;
+      color: #94a3b8;
+    }
+    .code-line.active {
+      background: var(--highlight);
+      color: #38bdf8;
+      font-weight: bold;
+      border-left: 4px solid var(--accent);
+    }
+
+    /* Explanation Box */
+    .explain-box {
+      background: #0d1524;
+      border-radius: 8px;
+      border: 1px solid #1e2e48;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .explain-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #38bdf8;
+    }
+    .explain-desc {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid var(--card-border);
+      font-size: 13px;
+    }
+    th { background: #0c121e; }
+    tr.active-row {
+      background: var(--highlight);
+      font-weight: bold;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div>
+    <h1>เครื่องมือเจาะลึก Binary Up Counter (ข้อ 2)</h1>
+    <p style="color: var(--muted); margin: 0;">จำลองการนับเลขฐานสอง 0 ถึง 15 เพียง 1 รอบ พร้อมถอดรหัสบิต (Bit Shift & Mask) ทีละขั้นตอน</p>
+  </div>
+
+  <!-- จำลองฮาร์ดแวร์จริง -->
+  <div class="card">
+    <h2>1. จำลองหลอดไฟตามตำแหน่งบิตจริง</h2>
+    <div class="board">
+      <!-- เรียงจาก MSB (ซ้าย) ไป LSB (ขวา) -->
+      <div class="led-slot">
+        <div id="led3" class="led green"></div>
+        <span class="label" style="color: #4ade80;">D3 (เขียว)</span>
+        <span class="pin">Pin 10 | MSB (ค่า 8)</span>
+        <span class="bit-val" id="bit3">บิต: 0</span>
+      </div>
+      <div class="led-slot">
+        <div id="led2" class="led yellow"></div>
+        <span class="label" style="color: #fde047;">D2 (เหลือง)</span>
+        <span class="pin">Pin 11 | (ค่า 4)</span>
+        <span class="bit-val" id="bit2">บิต: 0</span>
+      </div>
+      <div class="led-slot">
+        <div id="led1" class="led orange"></div>
+        <span class="label" style="color: #fb923c;">D1 (ส้ม)</span>
+        <span class="pin">Pin 12 | (ค่า 2)</span>
+        <span class="bit-val" id="bit1">บิต: 0</span>
+      </div>
+      <div class="led-slot">
+        <div id="led0" class="led red"></div>
+        <span class="label" style="color: #f87171;">D0 (แดง)</span>
+        <span class="pin">Pin 13 | LSB (ค่า 1)</span>
+        <span class="bit-val" id="bit0">บิต: 0</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="toggleAuto()">เริ่มนับอัตโนมัติ / หยุดชั่วคราว</button>
+      <button onclick="stepForward()">กดนับขึ้นทีละ 1 (Next Count)</button>
+      <button onclick="resetSim()" style="background:#475569; color:#fff;">เริ่มรอบใหม่ (Reset)</button>
+      <div class="status-badge" id="countStatus">ค่าปัจจุบัน: เลข 0 (0000)</div>
+    </div>
+  </div>
+
+  <!-- โค้ดและการถอดรหัสเชิงลึก -->
+  <div class="card">
+    <h2>2. ตัวแกะการทำงานของฟังก์ชัน (Bitwise Operation Trace)</h2>
+    <div class="grid-2">
+      <div class="code-box">
+        <span class="code-line">const int ledPins[4] = {13, 12, 11, 10};</span>
+        <span class="code-line">void setup() {</span>
+        <span class="code-line">&nbsp;&nbsp;// ตั้ง pinMode OUTPUT ทั้ง 4 ขา</span>
+        <span class="code-line" id="line-for">&nbsp;&nbsp;for (int count = 0; count &lt;= 15; count++) {</span>
+        <span class="code-line" id="line-call">&nbsp;&nbsp;&nbsp;&nbsp;displayBinary(count);</span>
+        <span class="code-line" id="line-delay">&nbsp;&nbsp;&nbsp;&nbsp;delay(500);</span>
+        <span class="code-line">&nbsp;&nbsp;}</span>
+        <span class="code-line" id="line-off">&nbsp;&nbsp;// ดับไฟเมื่อครบ 15 จบ 1 รอบ</span>
+        <span class="code-line">}</span>
+        <span class="code-line">void loop() { /* ว่างไว้เพื่อให้หยุด */ }</span>
+        <span class="code-line">void displayBinary(int num) {</span>
+        <span class="code-line" id="line-bitwise">&nbsp;&nbsp;int bitState = (num &gt;&gt; i) &amp; 1;</span>
+        <span class="code-line">&nbsp;&nbsp;digitalWrite(ledPins[i], bitState);</span>
+        <span class="code-line">}</span>
+      </div>
+
+      <div class="explain-box">
+        <div class="explain-title" id="explainTitle">การแปลงค่าฐานสองขณะนี้</div>
+        <div class="explain-desc" id="explainDesc">
+          กำลังเตรียมความพร้อม...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- คำอธิบายฟังก์ชันสำคัญ -->
+  <div class="card">
+    <h2>3. สรุปฟังก์ชันและเทคนิคสำคัญของข้อ 2</h2>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <strong style="color: #38bdf8;">1. ทำไมโค้ดการนับต้องอยู่ใน <code>setup()</code> แทนที่จะเป็น <code>loop()</code>?</strong>
+        <p style="margin: 4px 0 0 0; color: #cbd5e1; font-size: 14px;">
+          โจทย์ระบุว่า <strong>"for one round" (เพียง 1 รอบเท่านั้น)</strong> ในระบบ Arduino ฟังก์ชัน <code>setup()</code> จะรันเพียงรอบเดียวเมื่อจ่ายไฟ ส่วน <code>loop()</code> จะวนซ้ำตลอดไป การใส่ลูปนับ 0 ถึง 15 ใน <code>setup()</code> จึงทำให้โปรแกรมนับครบแล้วหยุดนิ่งทันที ไม่มีการวนกลับมาเริ่มนับ 0 ใหม่อีก
+        </p>
+      </div>
+      <div>
+        <strong style="color: #38bdf8;">2. การถอดรหัสบิตด้วยสูตร <code>(num >> i) & 1</code> ทำงานอย่างไร?</strong>
+        <p style="margin: 4px 0 0 0; color: #cbd5e1; font-size: 14px;">
+          * <code>>> i</code> คือ <strong>Bit Shift Right</strong> (เลื่อนบิตที่ต้องการตรวจสอบไปทางขวาสุด)<br>
+          * <code>& 1</code> คือ <strong>Bitwise AND</strong> เพื่อกรองเอาเฉพาะบิตขวาสุดเท่านั้น หากบิตนั้นเป็น 1 ผลลัพธ์จะเป็น 1 (HIGH สั่งไฟติด) หากเป็น 0 จะได้ 0 (LOW สั่งไฟดับ) เป็นวิธีที่เร็วและแม่นยำกว่าการหารเอาเศษมาก
+        </p>
+      </div>
+      <div>
+        <strong style="color: #38bdf8;">3. น้ำหนักประจำหลัก (Place Value) ของ LED ทั้ง 4 ดวง</strong>
+        <p style="margin: 4px 0 0 0; color: #cbd5e1; font-size: 14px;">
+          * D0 (แดง): บิต 0 น้ำหนักมีค่าเท่ากับ $2^0 = 1$<br>
+          * D1 (ส้ม): บิต 1 น้ำหนักมีค่าเท่ากับ $2^1 = 2$<br>
+          * D2 (เหลือง): บิต 2 น้ำหนักมีค่าเท่ากับ $2^2 = 4$<br>
+          * D3 (เขียว): บิต 3 น้ำหนักมีค่าเท่ากับ $2^3 = 8$<br>
+          ตัวอย่างเช่น <strong>เลข 13</strong> เกิดจาก $8 + 4 + 1$ ดังนั้นบิตฐานสองคือ <code>1101</code> (เขียว, เหลือง, และแดง จะติดพร้อมกัน)
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ตารางแสดงความสัมพันธ์ 0-15 -->
+  <div class="card">
+    <h2>4. ตารางแปลงเลขฐานสิบเป็นฐานสอง (0 ถึง 15)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>เลขฐานสิบ</th>
+          <th>ฐานสอง (D3 D2 D1 D0)</th>
+          <th>D3 เขียว (8)</th>
+          <th>D2 เหลือง (4)</th>
+          <th>D1 ส้ม (2)</th>
+          <th>D0 แดง (1)</th>
+          <th>ผลรวมค่าบิต</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- จะถูกสร้างผ่าน JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let currentCount = 0;
+  let timer = null;
+  let isCompleted = false;
+
+  // สร้างตารางข้อมูล 0-15
+  const tableBody = document.getElementById('tableBody');
+  for (let i = 0; i <= 15; i++) {
+    const b0 = (i >> 0) & 1;
+    const b1 = (i >> 1) & 1;
+    const b2 = (i >> 2) & 1;
+    const b3 = (i >> 3) & 1;
+    const binStr = `${b3}${b2}${b1}${b0}`;
+    const sumParts = [];
+    if (b3) sumParts.push("8");
+    if (b2) sumParts.push("4");
+    if (b1) sumParts.push("2");
+    if (b0) sumParts.push("1");
+    const sumText = sumParts.length > 0 ? sumParts.join(" + ") : "0";
+
+    const tr = document.createElement('tr');
+    tr.id = `row-${i}`;
+    tr.innerHTML = `
+      <td><strong>${i}</strong></td>
+      <td><code>${binStr}</code></td>
+      <td>${b3}</td>
+      <td>${b2}</td>
+      <td>${b1}</td>
+      <td>${b0}</td>
+      <td>${sumText}</td>
+    `;
+    tableBody.appendChild(tr);
+  }
+
+  function render() {
+    const b0 = (currentCount >> 0) & 1;
+    const b1 = (currentCount >> 1) & 1;
+    const b2 = (currentCount >> 2) & 1;
+    const b3 = (currentCount >> 3) & 1;
+
+    // อัปเดตไฟ LED และตัวเลขบิต
+    document.getElementById('led0').className = `led red ${b0 ? 'on' : ''}`;
+    document.getElementById('led1').className = `led orange ${b1 ? 'on' : ''}`;
+    document.getElementById('led2').className = `led yellow ${b2 ? 'on' : ''}`;
+    document.getElementById('led3').className = `led green ${b3 ? 'on' : ''}`;
+
+    document.getElementById('bit0').innerText = `บิต: ${b0}`;
+    document.getElementById('bit1').innerText = `บิต: ${b1}`;
+    document.getElementById('bit2').innerText = `บิต: ${b2}`;
+    document.getElementById('bit3').innerText = `บิต: ${b3}`;
+
+    // ไฮไลต์แถวในตาราง
+    for (let i = 0; i <= 15; i++) {
+      const row = document.getElementById(`row-${i}`);
+      if (i === currentCount && !isCompleted) {
+        row.classList.add('active-row');
+      } else {
+        row.classList.remove('active-row');
+      }
+    }
+
+    // อัปเดตสถานะและคำอธิบาย
+    const binStr = `${b3}${b2}${b1}${b0}`;
+    if (!isCompleted) {
+      document.getElementById('countStatus').innerText = `ค่าปัจจุบัน: เลข ${currentCount} (ฐานสอง: ${binStr})`;
+      document.getElementById('explainTitle').innerText = `กำลังคำนวณเลข ${currentCount} (ฐานสอง ${binStr})`;
+      document.getElementById('explainDesc').innerHTML = `
+        บอร์ดทำการวนลูปตรวจสอบทีละบิตด้วยคำสั่ง <code>(num >> i) & 1</code>:<br>
+        • บิต 0 (D0 แดง) = <strong>${b0}</strong> &rarr; ${b0 ? 'ปล่อยไฟ 5V (ติด)' : '0V (ดับ)'}<br>
+        • บิต 1 (D1 ส้ม) = <strong>${b1}</strong> &rarr; ${b1 ? 'ปล่อยไฟ 5V (ติด)' : '0V (ดับ)'}<br>
+        • บิต 2 (D2 เหลือง) = <strong>${b2}</strong> &rarr; ${b2 ? 'ปล่อยไฟ 5V (ติด)' : '0V (ดับ)'}<br>
+        • บิต 3 (D3 เขียว) = <strong>${b3}</strong> &rarr; ${b3 ? 'ปล่อยไฟ 5V (ติด)' : '0V (ดับ)'}
+      `;
+    } else {
+      document.getElementById('countStatus').innerText = `จบการทำงาน: นับครบ 1 รอบแล้ว (หยุดถาวร)`;
+      document.getElementById('explainTitle').innerText = `สิ้นสุด 1 รอบการทำงานตามโจทย์`;
+      document.getElementById('explainDesc').innerHTML = `
+        ลูป <code>for (count = 0; count <= 15; count++)</code> ทำงานจนจบค่าที่ 15 เรียบร้อยแล้ว<br>
+        ระบบออกจากฟังก์ชัน <code>setup()</code> และเข้าไปยัง <code>loop()</code> ซึ่งว่างเปล่า ทำให้ไม่มีการนับซ้ำอีกตามเงื่อนไขข้อกำหนด
+      `;
+    }
+  }
+
+  function stepForward() {
+    if (currentCount < 15) {
+      currentCount++;
+      render();
+    } else {
+      isCompleted = true;
+      stopAuto();
+      render();
+    }
+  }
+
+  function resetSim() {
+    stopAuto();
+    currentCount = 0;
+    isCompleted = false;
+    render();
+  }
+
+  function toggleAuto() {
+    if (timer) {
+      stopAuto();
+    } else {
+      if (isCompleted) resetSim();
+      timer = setInterval(() => {
+        if (currentCount < 15) {
+          stepForward();
+        } else {
+          isCompleted = true;
+          stopAuto();
+          render();
+        }
+      }, 700);
+    }
+  }
+
+  function stopAuto() {
+    clearInterval(timer);
+    timer = null;
+  }
+
+  // เริ่มต้นแสดงค่า 0
+  render();
+</script>
+
+</body>
+</html>
